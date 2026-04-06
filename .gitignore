@@ -1,0 +1,250 @@
+# ============================================================================
+# Python
+# ============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ============================================================================
+# Virtual Environments (Project-specific)
+# ============================================================================
+Jatayu_web_interface/backend/flask/
+Jatayu_web_interface/backend/env/
+Jatayu_web_interface/fastapi/
+Jatayu_web_interface/venv/
+
+# ============================================================================
+# Node.js / Frontend
+# ============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+.node_repl_history
+*.tgz
+.yarn-integrity
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ============================================================================
+# Frontend Build & Distribution
+# ============================================================================
+Jatayu_web_interface/frontend/dist/
+Jatayu_web_interface/frontend/build/
+Jatayu_web_interface/frontend/.cache/
+.parcel-cache
+.next
+.vercel
+
+# ============================================================================
+# Database Files
+# ============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.sql.bak
+Jatayu_web_interface/backend/instance/
+Jatayu_web_interface/database/*.db
+Jatayu_web_interface/database/*.sqlite
+
+# ============================================================================
+# Environment Variables & Secrets
+# ============================================================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+config_local.py
+secrets.json
+
+# ============================================================================
+# IDE & Editor
+# ============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.IntelliJIdea*/
+.vscode-project
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/tasks.json
+
+# ============================================================================
+# Logs & Temporary Files
+# ============================================================================
+*.log
+*.logs
+logs/
+tmp/
+temp/
+*.tmp
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ============================================================================
+# OS-Specific Files
+# ============================================================================
+.DS_Store
+Thumbs.db
+.Thumbs.db
+*.swp
+*.swo
+*~
+.directory
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# ============================================================================
+# Arduino / Firmware
+# ============================================================================
+.pio
+.pioenvs
+.piolibdeps
+.vscode/.browse.c_cpp.db*
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+.vscode/ipch
+*.o
+*.a
+*.elf
+*.hex
+
+# ============================================================================
+# Flask & Django Specific
+# ============================================================================
+instance/
+.webassets-cache
+.pytest_cache
+.coverage
+htmlcov/
+
+# ============================================================================
+# FastAPI Specific
+# ============================================================================
+.mypy_cache
+.dmypy.json
+dmypy.json
+
+# ============================================================================
+# Jupyter Notebooks
+# ============================================================================
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# ============================================================================
+# Network & Communication Test Files
+# ============================================================================
+test_results/
+*.cap
+*.pcap
+
+# ============================================================================
+# Backup Files
+# ============================================================================
+*.bak
+*.backup
+*.swp
+*.swpx
+*~
+.~*
+
+# ============================================================================
+# Distribution / Packaging
+# ============================================================================
+*.tar.gz
+*.zip
+*.rar
+build/
+dist/
+
+# ============================================================================
+# Mac specific
+# ============================================================================
+.AppleDouble
+.LSOverride
+._*
+.apdisk
+.TemporaryItems
+
+# ============================================================================
+# Windows specific
+# ============================================================================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ============================================================================
+# Linux specific  
+# ============================================================================
+.Trash-*
+.nfs*
+
+# ============================================================================
+# Project-Specific Exclusions
+# ============================================================================
+# Generated documentation
+site/
+docs/_build/
+
+# Development/Testing artifacts
+test_reports/
+coverage_report/
+
+# Local development overrides
+local_settings.py
+
+# Database migrations (if using Alembic)
+migrations/__pycache__/
+
+# PlatformIO Core
+.pio
+
+# Output files
+*.out
+*.txt.bak
