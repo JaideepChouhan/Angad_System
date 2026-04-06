@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lineman Portal - Power Line Fault Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border-left: 5px solid #0d6efd;
+        }
+        .risk-Normal { border-left: 5px solid #28a745; }
+        .risk-Intermediate { border-left: 5px solid #ffc107; }
+        .risk-Drastiс { border-left: 5px solid #dc3545; }
+        .map-container {
+            height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-user-hard-hat me-2"></i>Lineman Portal
+            </span>
+            <div class="d-flex">
+                <span class="badge bg-light text-dark">
+                    <i class="fas fa-sync-alt me-1"></i> Auto-refresh: <span id="refreshCountdown">5</span>s
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Lineman ID</h5>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="linemanId" placeholder="Enter your Lineman ID">
+                            <button class="btn btn-primary" type="button" onclick="setLinemanId()">Set ID</button>
+                        </div>
+                        <div id="currentLineman" class="d-none">
+                            <p class="mb-0">Logged in as: <strong id="loggedLinemanId"></strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Assigned Faults</h4>
+        
+        <div id="assignedFaults">
+            <div class="card">
+                <div class="card-body text-center py-5 text-muted">
+                    <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                    <p>No faults assigned yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let linemanId = localStorage.getItem('linemanId') || '';
+        let refreshInterval = 5000; // 5 seconds
+        let countdown = refreshInterval / 1000;
+        let refreshTimer;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (linemanId) {
+                document.getElementById('linemanId').value = linemanId;
+                setLinemanId();
+            }
+            startRefreshTimer();
+        });
+
+        function startRefreshTimer() {
+            clearInterval(refreshTimer);
+            countdown = refreshInterval / 1000;
+            refreshTimer = setInterval(function() {
+                countdown--;
+                document.getElementById('refreshCountdown').textContent = countdown;
+                
+                if (countdown <= 0 && linemanId) {
+                    fetchAssignedFaults();
+                    countdown = refreshInterval / 1000;
+                }
+            }, 1000);
+        }
+
+        function setLinemanId() {
+            const idInput = document.getElementById('linemanId');
+            if (idInput.value.trim()) {
+                linemanId = idInput.value.trim();
+                localStorage.setItem('linemanId', linemanId);
+                
+                document.getElementById('loggedLinemanId').textContent = linemanId;
+                document.getElementById('currentLineman').classList.remove('d-none');
+                
+                fetchAssignedFaults();
+            }
+        }
+
+        function fetchAssignedFaults() {
+            if (!linemanId) return;
+            
+            fetch('/api/alerts')
+                .then(response => response.json())
+                .then(data => {
+                    const assignedFaults = document.getElementById('assignedFaults');
+                    assignedFaults.innerHTML = '';
+                    
+                    // Filter faults assigned to this lineman or pending faults
+                    const myFaults = data.alerts.filter(alert => 
+                        alert.lineman_id === linemanId || 
+                        (alert.status === 'Pending' && !alert.lineman_id)
+                    );
+                    
+                    if (myFaults.length === 0) {
+                        assignedFaults.innerHTML = `
+                            <div class="card">
+                                <div class="card-body text-center py-5 text-muted">
+                                    <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                                    <p>No faults assigned yet</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    myFaults.forEach(fault => {
+                        const card = document.createElement('div');
+                        card.classList.add('card', 'mb-3', `risk-${fault.risk_level}`);
+                        
+                        const date = new Date(fault.timestamp);
+                        const formattedDate = date.toLocaleString();
+                        
+                        card.innerHTML = `
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title">${fault.device_id} - ${fault.fault_type}</h5>
+                                    <span class="badge bg-${getRiskBadgeColor(fault.risk_level)}">${fault.risk_level}</span>
+                                </div>
+                                <p class="card-text">
+                                    <strong>Status:</strong> <span class="badge bg-${fault.status === 'Pending' ? 'secondary' : 'primary'}">${fault.status}</span><br>
+                                    <strong>Reported:</strong> ${formattedDate}
+                                </p>
+                                
+                                <div class="map-container bg-light mb-3">
+                                    <iframe 
+                                        width="100%" 
+                                        height="100%" 
+                                        frameborder="0" 
+                                        style="border:0" 
+                                        src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${fault.lat},${fault.lon}&zoom=15" 
+                                        allowfullscreen>
+                                    </iframe>
+                                </div>
+                                
+                                ${fault.status === 'Pending' ? `
+                                    <button class="btn btn-success w-100" onclick="acceptFault(${fault.id})">
+                                        <i class="fas fa-check-circle me-2"></i>Accept Fault
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-secondary w-100" disabled>
+                                        <i class="fas fa-user-check me-2"></i>Already Accepted
+                                    </button>
+                                `}
+                            </div>
+                        `;
+                        
+                        assignedFaults.appendChild(card);
+                    });
+                })
+                .catch(error => console.error('Error fetching assigned faults:', error));
+        }
+
+        function acceptFault(faultId) {
+            if (!linemanId) {
+                alert('Please set your Lineman ID first');
+                return;
+            }
+            
+            fetch('/api/lineman_accept', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    fault_id: faultId,
+                    lineman_id: linemanId
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Fault accepted successfully!');
+                    fetchAssignedFaults();
+                } else {
+                    response.json().then(data => {
+                        alert('Error: ' + data.detail);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error accepting fault:', error);
+                alert('Error accepting fault. Please try again.');
+            });
+        }
+
+        function getRiskBadgeColor(riskLevel) {
+            switch(riskLevel) {
+                case 'Normal': return 'success';
+                case 'Intermediate': return 'warning';
+                case 'Drastic': return 'danger';
+                default: return 'secondary';
+            }
+        }
+    </script>
+</body>
+</html>

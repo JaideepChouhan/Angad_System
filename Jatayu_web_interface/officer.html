@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officer Dashboard - Power Line Fault Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .risk-Normal { border-left: 5px solid #28a745; }
+        .risk-Intermediate { border-left: 5px solid #ffc107; }
+        .risk-Drastiс { border-left: 5px solid #dc3545; }
+        .status-Pending { color: #6c757d; }
+        .status-Accepted { color: #17a2b8; }
+        .status-Resolved { color: #28a745; }
+        .map-container {
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .auto-refresh-badge {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-bolt me-2"></i>Power Line Fault Detection System - Officer Dashboard
+            </span>
+            <div class="d-flex">
+                <span class="badge bg-light text-dark auto-refresh-badge" id="refreshStatus">
+                    <i class="fas fa-sync-alt me-1"></i> Auto-refresh: <span id refreshCountdown>5</span>s
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Active Fault Alerts</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="fetchAlerts()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Device ID</th>
+                                        <th>Fault Type</th>
+                                        <th>Risk Level</th>
+                                        <th>Timestamp</th>
+                                        <th>Status</th>
+                                        <th>Lineman</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alertsTable">
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">No active alerts</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Linemen Status</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Area</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="linemenTable">
+                                            <tr>
+                                                <td colspan="3" class="text-center py-3">Loading...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Devices</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Device ID</th>
+                                                <th>Location</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="devicesTable">
+                                            <tr>
+                                                <td colspan="3" class="text-center py-3">Loading...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Fault Location</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="map-container bg-light" id="mapContainer">
+                            <div class="h-100 d-flex align-items-center justify-content-center">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-map-marked-alt fa-3x mb-2"></i>
+                                    <p>Select an alert to view location</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3" id="faultDetails">
+                            <p class="text-muted text-center">No fault selected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval = 5000; // 5 seconds
+        let countdown = refreshInterval / 1000;
+        let refreshTimer;
+        let autoRefresh = true;
+        let currentMap = null;
+        let currentMarker = null;
+
+        // Fetch all data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchAlerts();
+            fetchLinemen();
+            fetchDevices();
+            startRefreshTimer();
+        });
+
+        // Toggle auto-refresh
+        document.getElementById('refreshStatus').addEventListener('click', function() {
+            autoRefresh = !autoRefresh;
+            if (autoRefresh) {
+                startRefreshTimer();
+                this.classList.remove('bg-light', 'text-dark');
+                this.classList.add('bg-light', 'text-dark');
+            } else {
+                clearInterval(refreshTimer);
+                document.getElementById('refreshCountdown').textContent = 'Off';
+                this.classList.remove('bg-light', 'text-dark');
+                this.classList.add('bg-secondary', 'text-white');
+            }
+        });
+
+        function startRefreshTimer() {
+            clearInterval(refreshTimer);
+            countdown = refreshInterval / 1000;
+            refreshTimer = setInterval(function() {
+                countdown--;
+                document.getElementById('refreshCountdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    fetchAlerts();
+                    fetchLinemen();
+                    fetchDevices();
+                    countdown = refreshInterval / 1000;
+                }
+            }, 1000);
+        }
+
+        function fetchAlerts() {
+            fetch('/api/alerts')
+                .then(response => response.json())
+                .then(data => {
+                    const alertsTable = document.getElementById('alertsTable');
+                    alertsTable.innerHTML = '';
+                    
+                    if (data.alerts.length === 0) {
+                        alertsTable.innerHTML = '<tr><td colspan="6" class="text-center py-4">No active alerts</td></tr>';
+                        return;
+                    }
+                    
+                    data.alerts.forEach(alert => {
+                        const row = document.createElement('tr');
+                        row.classList.add(`risk-${alert.risk_level}`);
+                        row.addEventListener('click', () => showAlertDetails(alert));
+                        
+                        const date = new Date(alert.timestamp);
+                        const formattedDate = date.toLocaleString();
+                        
+                        row.innerHTML = `
+                            <td>${alert.device_id}</td>
+                            <td>${alert.fault_type}</td>
+                            <td><span class="badge bg-${getRiskBadgeColor(alert.risk_level)}">${alert.risk_level}</span></td>
+                            <td>${formattedDate}</td>
+                            <td class="status-${alert.status}">${alert.status}</td>
+                            <td>${alert.lineman_id || 'Not assigned'}</td>
+                        `;
+                        
+                        alertsTable.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching alerts:', error));
+        }
+
+        function fetchLinemen() {
+            fetch('/api/linemen')
+                .then(response => response.json())
+                .then(data => {
+                    const linemenTable = document.getElementById('linemenTable');
+                    linemenTable.innerHTML = '';
+                    
+                    data.linemen.forEach(lineman => {
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td>${lineman.name}</td>
+                            <td>${lineman.area}</td>
+                            <td><span class="badge bg-${lineman.status === 'Available' ? 'success' : 'warning'}">${lineman.status}</span></td>
+                        `;
+                        
+                        linemenTable.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching linemen:', error));
+        }
+
+        function fetchDevices() {
+            fetch('/api/devices')
+                .then(response => response.json())
+                .then(data => {
+                    const devicesTable = document.getElementById('devicesTable');
+                    devicesTable.innerHTML = '';
+                    
+                    data.devices.forEach(device => {
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td>${device.device_id}</td>
+                            <td>${device.location_name}</td>
+                            <td><span class="badge bg-${device.status === 'Active' ? 'success' : 'secondary'}">${device.status}</span></td>
+                        `;
+                        
+                        devicesTable.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching devices:', error));
+        }
+
+        function showAlertDetails(alert) {
+            // Update fault details
+            const date = new Date(alert.timestamp);
+            const formattedDate = date.toLocaleString();
+            
+            document.getElementById('faultDetails').innerHTML = `
+                <h6>Fault Details</h6>
+                <p><strong>Device ID:</strong> ${alert.device_id}</p>
+                <p><strong>Fault Type:</strong> ${alert.fault_type}</p>
+                <p><strong>Risk Level:</strong> <span class="badge bg-${getRiskBadgeColor(alert.risk_level)}">${alert.risk_level}</span></p>
+                <p><strong>Timestamp:</strong> ${formattedDate}</p>
+                <p><strong>Status:</strong> <span class="status-${alert.status}">${alert.status}</span></p>
+                <p><strong>Assigned Lineman:</strong> ${alert.lineman_id || 'Not assigned'}</p>
+            `;
+            
+            // Update map
+            const mapContainer = document.getElementById('mapContainer');
+            mapContainer.innerHTML = `
+                <iframe 
+                    width="100%" 
+                    height="100%" 
+                    frameborder="0" 
+                    style="border:0" 
+                    src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${alert.lat},${alert.lon}&zoom=15" 
+                    allowfullscreen>
+                </iframe>
+            `;
+        }
+
+        function getRiskBadgeColor(riskLevel) {
+            switch(riskLevel) {
+                case 'Normal': return 'success';
+                case 'Intermediate': return 'warning';
+                case 'Drastic': return 'danger';
+                default: return 'secondary';
+            }
+        }
+    </script>
+</body>
+</html>
