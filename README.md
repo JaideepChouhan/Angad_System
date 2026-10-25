@@ -1,7 +1,7 @@
 <div align="center">
 
 <!-- Swap this for the background-removed Jatayu sensor image once added: assets/images/jatayu_sensor.png -->
-<img src="assets/images/Jatayu-rmbg.png" alt="Jatayu Sensor" width="160"/>
+<img src="assets/Jatayu-rmbg.png" alt="Jatayu Sensor" width="160"/>
 
 # ⚡ Angad System
 ### Sentient Power Grid Guardian — Real-Time IoT Fault Detection Network
@@ -65,7 +65,7 @@ Captured directly from the Jatayu sensor, showing the electromagnetic field and 
 
 **🟢 Normal Condition**
 
-<img src="assets/images/normal_condition_Jatayu.png" alt="Normal Condition"/>
+<img src="assets/normal_condition_Jatayu.png" alt="Normal Condition"/>
 
 Stable EM field detected; current flow within expected range.
 
@@ -74,7 +74,7 @@ Stable EM field detected; current flow within expected range.
 
 **🔴 Fault Detected**
 
-<img src="assets/images/fault_detected_Jatayu.png" alt="Fault Detected"/>
+<img src="assets/fault_detected_Jatayu.png" alt="Fault Detected"/>
 
 Significant EM field disruption and current-flow anomaly detected.
 
@@ -83,7 +83,7 @@ Significant EM field disruption and current-flow anomaly detected.
 
 **✅ Fault Resolved**
 
-<img src="assets/images/fault_resolved_Jatayu.png" alt="Fault Resolved"/>
+<img src="assets/fault_resolved_Jatayu.png" alt="Fault Resolved"/>
 
 EM field stability restored; normal current flow resumed.
 
