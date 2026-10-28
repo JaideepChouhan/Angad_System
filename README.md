@@ -48,8 +48,8 @@
 
 A complete walkthrough — hardware, sensor validation, and live fault-to-resolution flow — is available here:
 
-📽️ **[Full Video Presentation (Google Drive)](#)** <!-- Replace # with your Drive share link -->
-🎬 **[Prototype Functioning Demo](#)** <!-- Replace # with the "Video Presentations" link from the SIH deck -->
+📽️ **[Full Video Presentation (Google Drive)](https://drive.google.com/file/d/1fiBGIJmzlV5mh7IZVVIpEPvmFDZYSScN/view?usp=sharing)** <!-- Replace # with your Drive share link -->
+🎬 **[Prototype Functioning Demo](https://drive.google.com/file/d/1fiBGIJmzlV5mh7IZVVIpEPvmFDZYSScN/view?usp=sharing)** <!-- Replace # with the "Video Presentations" link from the SIH deck -->
 
 > Set sharing to "Anyone with the link can view" before sharing externally.
 
